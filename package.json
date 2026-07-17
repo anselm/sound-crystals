@@ -1,0 +1,14 @@
+{
+  "name": "sound-crystals",
+  "version": "0.1.0",
+  "description": "A walk-inside field of sound crystals — declarative 3D + declarative WebAudio over one bus.",
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 8123 --directory ..",
+    "render": "node scripts/render.mjs"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.21.1"
+  }
+}

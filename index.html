@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sound Crystals</title>
+
+<!--
+	build-free ES modules: everything resolves through this importmap.
+	dev: serve the PARENT dir (projects/2026) so "orbital-volume/" reaches the
+	sibling checkout live. deploy: vendor or publish orbital-volume and repoint.
+-->
+<script type="importmap">
+	{
+		"imports": {
+			"three": "https://unpkg.com/three@0.148.0/build/three.module.js",
+			"three/addons/": "https://unpkg.com/three@0.148.0/examples/jsm/",
+			"@orbitalfoundation/bus": "https://cdn.jsdelivr.net/npm/@orbitalfoundation/bus@2/index.js",
+			"@orbitalfoundation/utils": "https://cdn.jsdelivr.net/npm/@orbitalfoundation/utils@2/index.js",
+			"orbital-volume/": "../orbital-volume/",
+			"here/": "./"
+		}
+	}
+</script>
+
+<style>
+	html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #05070c; }
+	#volume001 { position: absolute; inset: 0; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div id="volume001"></div>
+<script type="module" src="index.js"></script>
+</body>
+</html>
