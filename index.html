@@ -7,8 +7,9 @@
 
 <!--
 	build-free ES modules: everything resolves through this importmap.
-	dev: serve the PARENT dir (projects/2026) so "orbital-volume/" reaches the
-	sibling checkout live. deploy: vendor or publish orbital-volume and repoint.
+	orbital-volume is vendored (deploy/vendor.sh refreshes it from the sibling
+	checkout) so the site is self-contained; swap the alias back to
+	"../orbital-volume/" to live-edit the sibling during library work.
 -->
 <script type="importmap">
 	{
@@ -17,7 +18,7 @@
 			"three/addons/": "https://unpkg.com/three@0.148.0/examples/jsm/",
 			"@orbitalfoundation/bus": "https://cdn.jsdelivr.net/npm/@orbitalfoundation/bus@2/index.js",
 			"@orbitalfoundation/utils": "https://cdn.jsdelivr.net/npm/@orbitalfoundation/utils@2/index.js",
-			"orbital-volume/": "../orbital-volume/",
+			"orbital-volume/": "./vendor/orbital-volume/",
 			"here/": "./"
 		}
 	}

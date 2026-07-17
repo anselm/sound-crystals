@@ -1,0 +1,41 @@
+{
+  "name": "@orbitalfoundation/orbital-volume",
+  "version": "2.2.0",
+  "description": "Declarative 3D shim over three.js for @orbitalfoundation/bus — observes ECS 'volume' components and renders scenes, cameras, lights, and rigged/animated avatars.",
+  "type": "module",
+  "main": "volume.js",
+  "files": [
+    "volume.js",
+    "volume_query.js",
+    "handlers/",
+    "README.md"
+  ],
+  "scripts": {
+    "smoke": "node test/smoke.mjs"
+  },
+  "dependencies": {
+    "@orbitalfoundation/bus": "^2.0.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.148"
+  },
+  "keywords": [
+    "threejs",
+    "3d",
+    "ecs",
+    "declarative",
+    "avatar",
+    "vrm",
+    "orbital",
+    "event-bus"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orbitalfoundation/orbital-volume.git"
+  },
+  "homepage": "https://orbitalfoundation.github.io/orbital-volume/",
+  "publishConfig": {
+    "access": "public"
+  }
+}
