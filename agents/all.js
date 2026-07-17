@@ -7,5 +7,6 @@ export default { load: [
 	'here/agents/stage.js',
 	'here/agents/field.js',
 	'here/agents/interaction.js',
+	'here/agents/touch.js',
 	'here/agents/hud.js',
 ]}

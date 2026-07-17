@@ -34,6 +34,10 @@ function build(bus) {
 	`
 	document.head.appendChild(style)
 
+	const touch = globalThis.SC?.touch
+	const help = touch
+		? 'left thumb to walk · drag to look · tap a crystal to ring it'
+		: 'WASD to walk · mouse to look · click to toggle the crystal you aim at · esc to pause'
 	overlay = document.createElement('div')
 	overlay.id = 'sc-hud'
 	overlay.innerHTML = `
@@ -41,10 +45,15 @@ function build(bus) {
 		<p>A field of ringing crystals. Walk through one to wake it — it keeps
 		ringing until you pass through again. Leave a chord behind you, cross the
 		room, wake another against it.</p>
-		<p>WASD to walk · mouse to look · click to toggle the crystal you aim at · esc to pause</p>
-		<div class="enter">click to enter</div>
+		<p>${help}</p>
+		<div class="enter">${touch ? 'tap' : 'click'} to enter</div>
 	`
-	overlay.addEventListener('click', () => { bus.resolve({ enter: true }) })
+	overlay.addEventListener('click', () => {
+		// unlock synchronously IN the gesture handler — iOS will not resume an
+		// AudioContext from the async side of a bus dispatch
+		bus.sound?.unlock?.()
+		bus.resolve({ enter: true })
+	})
 	document.body.appendChild(overlay)
 
 	reticle = document.createElement('div')
@@ -58,7 +67,7 @@ export default [{
 		if(blob.registered) { build(bus); return }
 		if('locked' in blob && overlay) {
 			overlay.style.display = blob.locked ? 'none' : 'flex'
-			reticle.style.display = blob.locked ? 'block' : 'none'
+			reticle.style.display = (blob.locked && !globalThis.SC?.touch) ? 'block' : 'none'
 		}
 	}
 }]

@@ -100,7 +100,7 @@ export default [{
 		if(blob.enter) {
 			if(!S.ready) init(bus)
 			bus.sound?.unlock?.()
-			S.controls?.lock?.()
+			if(!globalThis.SC.touch) S.controls?.lock?.()   // no pointer lock on phones
 			return
 		}
 		if(blob.tick) tick(blob, bus)

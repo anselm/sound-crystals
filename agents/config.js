@@ -16,6 +16,9 @@ globalThis.SC = {
 
 	crystals: [],                        // filled by field.js; read by interaction.js
 
+	// primary pointer is coarse → phone/tablet: touch.js drives, pointer-lock is skipped
+	touch: typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches,
+
 	eyeHeight: 1.6,
 	walkSpeed: 3.2,
 	reach: 3.5,                          // reticle toggle range, metres
