@@ -67,6 +67,9 @@ async function main() {
 
   await send('Runtime.enable');
   await send('Page.enable');
+  // never verify a cached build — that defeats the harness's whole purpose
+  await send('Network.enable');
+  await send('Network.setCacheDisabled', { cacheDisabled: true });
   // phone emulation BEFORE navigation so SC.touch detects coarse pointer at boot
   await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 2, mobile: true });
   await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });

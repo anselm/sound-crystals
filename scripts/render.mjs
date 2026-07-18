@@ -63,6 +63,9 @@ async function main() {
 
   await send('Runtime.enable');
   await send('Page.enable');
+  // never verify a cached build — that defeats the harness's whole purpose
+  await send('Network.enable');
+  await send('Network.setCacheDisabled', { cacheDisabled: true });
   await send('Page.navigate', { url: URL });
 
   // poll until the field is fully built (CDN deps can be slow on a cold profile)
