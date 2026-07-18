@@ -59,6 +59,32 @@ function build(bus) {
 	reticle = document.createElement('div')
 	reticle.id = 'sc-reticle'
 	document.body.appendChild(reticle)
+
+	// visit /?debug to watch audio state live — for diagnosing silent phones
+	if(location.search.includes('debug')) {
+		debug = document.createElement('div')
+		debug.style.cssText = `position:fixed; top:8px; left:8px; z-index:20;
+			font: 11px ui-monospace, monospace; color:#9fe8a0; background:rgba(0,0,0,0.6);
+			padding:6px 8px; border-radius:6px; pointer-events:none; white-space:pre;`
+		debug.textContent = 'audio: (locked — tap to enter)'
+		document.body.appendChild(debug)
+	}
+}
+
+let debug = null
+let debugLast = 0
+
+function debugTick(t, bus) {
+	if(!debug || (t - debugLast) < 0.5) return
+	debugLast = t
+	const st = bus.sound?._state
+	const SC = globalThis.SC
+	debug.textContent =
+		`ctx: ${st?.ctx?.state ?? 'none'}` +
+		`\nsession: ${(typeof navigator !== 'undefined' && navigator.audioSession) ? navigator.audioSession.type : 'n/a'}` +
+		`\nshim: ${st?.shim ? (st.shim.paused ? 'paused' : 'playing') : 'none'}` +
+		`\nvoices: ${st?.voices?.size ?? 0} active: ${SC?.crystals?.filter(e => e.sound.active).length ?? 0}` +
+		`\ntouch: ${SC?.touch}`
 }
 
 export default [{
@@ -69,5 +95,6 @@ export default [{
 			overlay.style.display = blob.locked ? 'none' : 'flex'
 			reticle.style.display = (blob.locked && !globalThis.SC?.touch) ? 'block' : 'none'
 		}
+		if(blob.tick) debugTick(blob.t, bus)
 	}
 }]

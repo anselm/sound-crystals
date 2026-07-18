@@ -21,11 +21,42 @@ const _state = {
 	entities: new Set(), // entities carrying sound.synth
 	voices: new Map(),   // entity → { osc, env, filter, panner, output, on }
 	listener: null,      // entity carrying sound.listener
+	shim: null,          // silent <audio> element — iOS ringer-channel workaround
+}
+
+// a tiny silent wav, generated rather than a magic base64 blob
+function silentWavURL() {
+	const n = 2205 // 0.05 s @ 44100
+	const buf = new ArrayBuffer(44 + n * 2)
+	const v = new DataView(buf)
+	const w = (o, s) => { for(let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)) }
+	w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt ')
+	v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true)
+	v.setUint32(24, 44100, true); v.setUint32(28, 88200, true)
+	v.setUint16(32, 2, true); v.setUint16(34, 16, true)
+	w(36, 'data'); v.setUint32(40, n * 2, true)
+	return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }))
 }
 
 // the audio context starts on the first user gesture (autoplay policy); the hud's
-// "click to enter" calls this. safe to call repeatedly.
+// tap/click-to-enter calls this SYNCHRONOUSLY in the gesture handler. safe to
+// call repeatedly.
+//
+// iOS: Web Audio routes through the RINGER channel by default — with the
+// hardware mute switch on, an AudioContext is silent while media apps play
+// fine. Two-part fix, both inside the gesture: ask for the 'playback' audio
+// session category where the API exists (iOS 16.4+), and play a looping silent
+// <audio> element, which promotes the session on older WebKit. Chrome on iOS
+// is WebKit, so this covers it too.
 function unlock() {
+	try { if(navigator.audioSession) navigator.audioSession.type = 'playback' } catch(e) {}
+	if(!_state.shim) {
+		const el = _state.shim = document.createElement('audio')
+		el.src = silentWavURL()
+		el.loop = true
+		el.setAttribute('playsinline', '')
+		el.play().catch(() => {})
+	}
 	if(!_state.ctx) {
 		const ctx = _state.ctx = new AudioContext()
 		const compressor = ctx.createDynamicsCompressor()
@@ -34,8 +65,14 @@ function unlock() {
 		compressor.connect(trim)
 		trim.connect(ctx.destination)
 		_state.master = compressor
+		// iOS can flip a context to 'interrupted'/'suspended' on route changes
+		// (call, headphones, tab switch) — nudge it back on any later gesture
+		ctx.addEventListener('statechange', () => { if(ctx.state !== 'running') ctx.resume().catch(() => {}) })
+		const nudge = () => { if(_state.ctx && _state.ctx.state !== 'running') _state.ctx.resume().catch(() => {}) }
+		document.addEventListener('touchend', nudge, { passive: true })
+		document.addEventListener('visibilitychange', nudge)
 	}
-	if(_state.ctx.state !== 'running') _state.ctx.resume()
+	if(_state.ctx.state !== 'running') _state.ctx.resume().catch(() => {})
 }
 
 function adopt(entity) {
