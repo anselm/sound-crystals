@@ -25,6 +25,8 @@ function build(bus) {
 		#sc-hud p { margin: 6px 0; color: #9aa8bc; font-size: 15px; max-width: 460px; line-height: 1.6; }
 		#sc-hud .enter { margin-top: 26px; color: #e7f0ff; font-size: 18px;
 			border: 1px solid #3a4560; border-radius: 999px; padding: 10px 26px; }
+		#sc-version { position: fixed; right: 10px; bottom: 8px; z-index: 11;
+			font: 11px ui-monospace, monospace; color: #55627a; pointer-events: none; }
 		#sc-reticle {
 			position: fixed; left: 50%; top: 50%; z-index: 9; display: none;
 			width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%;
@@ -59,6 +61,20 @@ function build(bus) {
 	reticle = document.createElement('div')
 	reticle.id = 'sc-reticle'
 	document.body.appendChild(reticle)
+
+	// version stamp — "which build am I looking at". package.json is the app
+	// version; version.json is written by the deployer (sha + time), absent in dev.
+	const ver = document.createElement('div')
+	ver.id = 'sc-version'
+	ver.textContent = '…'
+	document.body.appendChild(ver)
+	;(async () => {
+		const get = async (f) => { try { const r = await fetch(f, { cache: 'no-store' }); return r.ok ? await r.json() : null } catch(e) { return null } }
+		const pkg = await get('package.json')
+		const build = await get('version.json')
+		ver.textContent = `v${pkg?.version ?? '?'}` +
+			(build ? ` · ${build.sha.slice(0, 7)} · ${build.at}` : ' · dev')
+	})()
 
 	// visit /?debug to watch audio state live — for diagnosing silent phones
 	if(location.search.includes('debug')) {

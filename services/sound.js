@@ -127,14 +127,25 @@ function buildVoice(entity) {
 	return { osc, env, filter, panner, output, on: false }
 }
 
-// the one excitation entry point: ramp the envelope toward a target level.
-// setTargetAtTime only — never hard-set gain (clicks).
+// the one excitation entry point — full ADSR, plucked-string style:
+// level > 0: attack to peak, then decay toward sustainLevel×peak; the sustain
+// window is finite (sound.sustain seconds — can be long) and update() flips
+// sound.active off when it ends, which lands here as the release.
+// level = 0: release ramp. setTargetAtTime only — never hard-set gain (clicks).
 function excite(entity, voice, level) {
 	const sound = entity.sound
 	const t = _state.ctx.currentTime
-	const tc = level > 0 ? (sound.attack ?? 0.25) / 3 : (sound.release ?? 0.4) / 3
-	voice.env.gain.cancelScheduledValues(t)
-	voice.env.gain.setTargetAtTime(level, t, tc)
+	const g = voice.env.gain
+	g.cancelScheduledValues(t)
+	if(level > 0) {
+		const attack = sound.attack ?? 0.25
+		const decay = sound.decay ?? 1.5
+		g.setTargetAtTime(level, t, attack / 3)
+		g.setTargetAtTime(level * (sound.sustainLevel ?? 0.65), t + attack, Math.max(decay / 3, 0.05))
+		voice.onAt = t
+	} else {
+		g.setTargetAtTime(0, t, (sound.release ?? 2.5) / 3)
+	}
 }
 
 // entity position: prefer the pose volume live-binds (a THREE vector — mutating it
@@ -189,10 +200,19 @@ function update() {
 			voice = buildVoice(entity)
 			_state.voices.set(entity, voice)
 		}
+		// finite sustain: strings idle out. authoritative flip of sound.active —
+		// the envelope release and the glow fade both follow from it.
+		if(voice.on && sound.sustain != null &&
+			(_state.ctx.currentTime - voice.onAt) > (sound.attack ?? 0.25) + sound.sustain) {
+			sound.active = false
+		}
 		if(voice.on !== !!sound.active) {
 			voice.on = !!sound.active
 			excite(entity, voice, voice.on ? (sound.gain ?? 0.15) : 0)
 		}
+		// publish the live envelope level onto the component — visuals read this,
+		// so glow tracks the actual sound (including the slow die-away) for free
+		sound.level = voice.env.gain.value
 		const p = positionOf(entity)
 		if(p) {
 			if(voice.panner.positionX) {

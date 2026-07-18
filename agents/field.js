@@ -67,8 +67,7 @@ function generate(bus) {
 		const sat = Math.round(lerp(60, 90, satLatent))
 		const light = 52 + octave * 9                     // higher octave = glassier
 		const color = `hsl(${hue}, ${sat}%, ${light}%)`
-		const dim   = `hsl(${hue}, 80%, 12%)`             // emissive at rest — a faint inner light
-		const glow  = `hsl(${hue}, 90%, 48%)`             // emissive while ringing
+		const glow  = `hsl(${hue}, 90%, 48%)`             // emissive; intensity tracks the envelope
 
 		// placement: scatter around the cluster centre, biased toward walking height
 		const centre = centres[cluster]
@@ -80,7 +79,7 @@ function generate(bus) {
 
 		const crystal = {
 			id: `crystal-${i}`,
-			crystal: { i, cluster, degree, octave, radius, dim, glow },
+			crystal: { i, cluster, degree, octave, radius },
 			volume: {
 				geometry: 'crystal',
 				facets,
@@ -88,7 +87,8 @@ function generate(bus) {
 				seed: P.seed + i * 7919,                    // per-crystal shard displacement
 				material: {
 					color, transparent: true, opacity: 0.5,
-					emissive: dim, shininess: 120, specular: 0xaaccee,
+					emissive: glow, emissiveIntensity: 0.08,
+					shininess: 120, specular: 0xaaccee,
 					flatShading: true,
 				},
 				pose: {
@@ -101,7 +101,13 @@ function generate(bus) {
 				synth: 'voice',
 				freq, waveform,
 				cutoff, q: 2.5, gain,
-				attack: 0.25, release: 0.4,
+				// plucked-string ADSR: big low crystals ring longest, like real strings.
+				// sustain is finite — latched chords eventually idle out (devlog 20260718).
+				attack: 0.25,
+				decay: 1.2 + rng() * 1.2,
+				sustainLevel: 0.65,
+				sustain: lerp(18, 40, 1 - pitchNorm),
+				release: lerp(2, 5, 1 - pitchNorm),
 				active: false,                              // THE toggle. one source of truth.
 			},
 		}

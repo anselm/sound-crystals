@@ -16,16 +16,11 @@ const S = {
 	inside: new Set(),   // crystals the body is currently within (exit-bounds refractory)
 }
 
-// the verb is TOGGLE, edge-triggered: flipped crystals STAY flipped — that is what
-// lets you leave chords ringing and orchestrate the field by walking (devlog §9)
+// the verb is TOGGLE, edge-triggered: flipped crystals stay ringing through
+// their (long) sustain, then idle out like plucked strings (devlog §9 + 20260718).
+// no visual side effects here — glow is synced from the live envelope each tick.
 function toggle(entity) {
-	const sound = entity.sound
-	sound.active = !sound.active
-	const node = entity.volume.node
-	if(node && node.material) {
-		node.material.emissive.setStyle(sound.active ? entity.crystal.glow : entity.crystal.dim)
-		node.material.opacity = sound.active ? 0.85 : 0.5
-	}
+	entity.sound.active = !entity.sound.active
 }
 
 function init(bus) {
@@ -82,14 +77,22 @@ function tick(blob, bus) {
 
 	// body pass-through: walking through a crystal toggles it (the flat-mode analog
 	// of a hand-sweep). refractory until you exit its bounds, so no boundary flutter.
+	// same loop syncs glow ← live envelope level, so ringing crystals shine and
+	// idling ones visibly fade with their sound.
 	const eye = S.camera.position
 	for(const entity of SC.crystals) {
 		const pos = entity.volume.pose?.position
-		if(!pos || !entity.volume.node) continue
+		const node = entity.volume.node
+		if(!pos || !node) continue
 		const within = eye.distanceTo(pos) < entity.crystal.radius + SC.bodyRadius
 		const was = S.inside.has(entity.id)
 		if(within && !was) { S.inside.add(entity.id); toggle(entity) }
 		else if(!within && was) { S.inside.delete(entity.id) }
+		if(node.material) {
+			const rel = Math.min(1, (entity.sound.level || 0) / (entity.sound.gain || 0.15))
+			node.material.emissiveIntensity = 0.08 + rel * 1.1
+			node.material.opacity = 0.5 + rel * 0.35
+		}
 	}
 }
 

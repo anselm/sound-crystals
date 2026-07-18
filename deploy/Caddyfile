@@ -8,9 +8,10 @@
 :80 {
 	root * /srv/site
 
-	# no build step / no fingerprinting — cache modestly
-	@assets path *.js *.css *.png *.ico
-	header @assets Cache-Control "public, max-age=3600"
+	# iterating experiment, no fingerprinting: never serve a stale build.
+	# no-cache = revalidate every request; Caddy answers unchanged files with
+	# cheap 304s (ETag/Last-Modified), and the heavy deps come from CDNs anyway.
+	header Cache-Control "no-cache"
 
 	encode gzip zstd
 

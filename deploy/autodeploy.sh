@@ -31,5 +31,7 @@ rsync -a --delete \
   --exclude '.git' --exclude 'node_modules' --exclude 'deploy' --exclude 'scripts' \
   "$REPO/" "$DEST"/
 
+printf '{"sha":"%s","at":"%s"}\n' "$remote_sha" "$(date -u +%Y-%m-%dT%H:%MZ)" > "$DEST/version.json"
+
 echo "$remote_sha" > "$STATE"
 echo "✓ deployed $remote_sha"

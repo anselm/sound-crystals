@@ -17,4 +17,8 @@ rsync -avh --delete -e "$SSH" \
   --exclude '.git' --exclude 'node_modules' --exclude 'deploy' --exclude 'scripts' \
   "$ROOT/" "$DEST:/srv/site/"
 
+SHA="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo manual)"
+git -C "$ROOT" diff --quiet 2>/dev/null || SHA="$SHA-dirty"
+$SSH "$DEST" "printf '{\"sha\":\"%s\",\"at\":\"%s\"}\n' '$SHA' \"\$(date -u +%Y-%m-%dT%H:%MZ)\" > /srv/site/version.json"
+
 echo "✓ deployed → https://$HOST"

@@ -134,6 +134,16 @@ async function main() {
     });
   })()`));
 
+  // ADSR idle-out: shrink one crystal's sustain and confirm it dies on its own —
+  // active flips false (service-authoritative) and the envelope level drains
+  console.log('idle:', await evaluate(`(async () => {
+    const e = SC.crystals.find(c => !c.sound.active);
+    e.sound.sustain = 1; e.sound.release = 0.4;
+    SC.toggle(e);
+    await new Promise(r => setTimeout(r, 3800));
+    return JSON.stringify({ active: e.sound.active, level: +(e.sound.level || 0).toFixed(4) });
+  })()`));
+
   console.log('\n--- console (last 30) ---');
   console.log(logs.slice(-30).join('\n') || '(clean)');
   ws.close();
