@@ -1,0 +1,7 @@
+name = "sound-crystals"
+horizon = "2026"
+repo = "anselm/sound-crystals"
+code = "local"
+deploy = "exe:crystals"
+autodeploy = true
+notes = ""
