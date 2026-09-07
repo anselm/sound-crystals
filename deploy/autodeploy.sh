@@ -5,7 +5,7 @@
 # the site (orbital-volume is vendored in-tree).
 set -euo pipefail
 
-REPO_URL="https://github.com/orbitalfoundation/sound-crystals.git"
+REPO_URL="https://github.com/anselm/sound-crystals.git"
 BRANCH="main"
 BASE="/srv/autodeploy"
 REPO="$BASE/repo"
